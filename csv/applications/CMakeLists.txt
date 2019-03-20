@@ -23,6 +23,7 @@ add_executable( csv-time ${dir}/csv-time.cpp )
 add_executable( csv-time-delay ${dir}/csv-time-delay.cpp )
 add_executable( csv-time-join ${dir}/csv-time-join.cpp )
 add_executable( csv-time-stamp ${dir}/csv-time-stamp.cpp )
+add_executable( csv-time-pulse ${dir}/csv-time-pulse.cpp )
 add_executable( csv-to-bin ${dir}/csv-to-bin.cpp )
 add_executable( csv-from-bin ${dir}/csv-from-bin.cpp )
 add_executable( csv-calc ${dir}/csv-calc.cpp )
@@ -49,6 +50,7 @@ target_link_libraries ( csv-time ${comma_ALL_EXTERNAL_LIBRARIES} comma_applicati
 target_link_libraries ( csv-time-delay ${comma_ALL_EXTERNAL_LIBRARIES} comma_application comma_csv comma_string comma_xpath )
 target_link_libraries ( csv-time-join ${comma_ALL_EXTERNAL_LIBRARIES} comma_application comma_csv comma_io comma_string comma_xpath )
 target_link_libraries ( csv-time-stamp ${comma_ALL_EXTERNAL_LIBRARIES} comma_application comma_csv comma_string )
+target_link_libraries ( csv-time-pulse ${comma_ALL_EXTERNAL_LIBRARIES} comma_application comma_csv comma_string comma_xpath )
 target_link_libraries ( csv-to-bin ${comma_ALL_EXTERNAL_LIBRARIES} comma_csv comma_xpath comma_application ) # profiler )
 target_link_libraries ( csv-from-bin ${comma_ALL_EXTERNAL_LIBRARIES} comma_csv comma_xpath comma_application )
 target_link_libraries ( csv-calc ${comma_ALL_EXTERNAL_LIBRARIES} comma_csv comma_xpath comma_application comma_string )
@@ -73,6 +75,7 @@ install( TARGETS csv-bin-cut
                  csv-time-delay
                  csv-time-join
                  csv-time-stamp
+                 csv-time-pulse
                  csv-to-bin
                  csv-from-bin
                  csv-size
