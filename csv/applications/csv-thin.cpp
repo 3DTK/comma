@@ -62,17 +62,16 @@ static void usage(bool detail=false)
     std::cerr << "Usage: cat full.csv | csv-thin [<rate>] [<options>] > thinned.csv" << std::endl;
     std::cerr << std::endl;
     std::cerr << "options:" << std::endl;
-    std::cerr << "    --binary,-b <size>: if given, data is packets of fixed size" << std::endl;
-    std::cerr << "                        alternatively use --size" << std::endl;
-    std::cerr << "    --deterministic,-d: if given, input is downsampled by a factor of int(1 / <rate>)." << std::endl;
-    std::cerr << "                        That is, if <rate> is 0.33, output every third packet." << std::endl;
-    std::cerr << "                        Default is to output each packet with a probability of <rate>." << std::endl;
-    std::cerr << "    --fields=[<fields>]: use timestamp in fields to determine time for --period" << std::endl;
-    std::cerr << "    --fps,--frames-per-second <d>: deprecated and removed" << std::endl;
-    std::cerr << "    --period=[<n>]: output once every <n> seconds, ignores <rate>" << std::endl;
-    std::cerr << "    --size,-s <size>: if given, data is packets of fixed size" << std::endl;
-    std::cerr << "                      otherwise data is expected line-wise" << std::endl;
-    std::cerr << "                      alternatively use --binary" << std::endl;
+    std::cerr << "    --binary,-b=<format>: data is packets of fixed size given by <format>." << std::endl;
+    std::cerr << "                          Alternatively use --size" << std::endl;
+    std::cerr << "    --deterministic,-d: input is downsampled by a factor of int( 1 / <rate> )." << std::endl;
+    std::cerr << "                That is, if <rate> is 0.33, output every third packet." << std::endl;
+    std::cerr << "                Default is to output each packet with a probability of <rate>." << std::endl;
+    std::cerr << "    --fields=<fields>: use timestamp in fields to determine time for --period" << std::endl;
+    std::cerr << "    --fps,--frames-per-second=<d>: deprecated and removed" << std::endl;
+    std::cerr << "    --period=<n>: output once every <n> seconds, ignores <rate>" << std::endl;
+    std::cerr << "    --size,-s=<size>: data is packets of fixed size, otherwise data is expected" << std::endl;
+    std::cerr << "                      line-wise. Alternatively use --binary" << std::endl;
     std::cerr << std::endl;
     if( detail )
     {
@@ -88,7 +87,8 @@ static void usage(bool detail=false)
     std::cerr << "examples:" << std::endl;
     std::cerr << "    output 70% of data:          cat full.csv | csv-thin 0.7" << std::endl;
     std::cerr << "    output once every 2 seconds: cat full.csv | csv-thin --period 2" << std::endl;
-    std::cerr << "     using timestamp from input: cat full.csv | csv-thin --period 2 --fields t" << std::endl;
+    std::cerr << "    using timestamp from input:  cat full.csv | csv-thin --period 2 --fields t" << std::endl;
+    std::cerr << "    binary data:                 cat full.bin | csv-thin 0.1 --binary 3d" << std::endl;
     std::cerr << std::endl;
     std::cerr << comma::contact_info << std::endl;
     std::cerr << std::endl;

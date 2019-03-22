@@ -16,8 +16,12 @@ INSTALL( TARGETS name-value-convert name-value-get name-value-eval-preparse name
          RUNTIME DESTINATION ${comma_INSTALL_BIN_DIR}
          COMPONENT Runtime )
 
-install( PROGRAMS name-value-eval name-value-calc name-value-to-csv name-value-apply DESTINATION ${comma_INSTALL_BIN_DIR} )
+install( PROGRAMS name-value-eval name-value-calc name-value-apply DESTINATION ${comma_INSTALL_BIN_DIR} )
          
 add_executable( name-value-from-csv ${dir}/name-value-from-csv.cpp )
 target_link_libraries( name-value-from-csv comma_application comma_string )
 install( TARGETS name-value-from-csv RUNTIME DESTINATION ${comma_INSTALL_BIN_DIR} COMPONENT Runtime )
+
+add_executable( name-value-to-csv ${dir}/name-value-to-csv.cpp )
+target_link_libraries( name-value-to-csv comma_application comma_string )
+install( TARGETS name-value-to-csv RUNTIME DESTINATION ${comma_INSTALL_BIN_DIR} COMPONENT Runtime )

@@ -30,7 +30,7 @@
 #include <iostream>
 #include "../command_line_options.h"
 
-void usage()
+void usage( bool )
 {
     std::cerr << std::endl;
     std::cerr << "validate command line options against option description" << std::endl;
@@ -57,8 +57,7 @@ int main( int ac, char** av )
 {
     try
     {
-        comma::command_line_options options( ac, av );
-        if( options.exists( "--help,-h" ) ) { usage(); }
+        comma::command_line_options options( ac, av, usage );
         std::vector< comma::command_line_options::description > descriptions;
         while( std::cin.good() )
         {
@@ -71,13 +70,7 @@ int main( int ac, char** av )
         options.assert_valid( descriptions, true );
         return 0;
     }
-    catch( std::exception& ex )
-    {
-        std::cerr << "comma-options-validate: " << ex.what() << std::endl;
-    }
-    catch( ... )
-    {
-        std::cerr << "comma-options-validate: unknown exception" << std::endl;
-    }
+    catch( std::exception& ex ) { std::cerr << "comma-options-validate: " << ex.what() << std::endl; }
+    catch( ... ) { std::cerr << "comma-options-validate: unknown exception" << std::endl; }
     return 1;
 }
