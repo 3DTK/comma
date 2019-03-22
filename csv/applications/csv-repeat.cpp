@@ -81,6 +81,7 @@ void usage( bool verbose = false )
     std::cerr << "    --append fields are appended to output; supported fields are:" << std::endl;
     std::cerr << "        time: append timestamp" << std::endl;
     std::cerr << "        repeating: 1 if currently repeating" << std::endl;
+    std::cerr << "        repeat_count: 0f it not repeated record, otherwise counts upward for consecutive repeating records" << std::endl;
     std::cerr << std::endl;
     if( verbose )
     {
@@ -111,8 +112,9 @@ struct output_t
 {
     boost::posix_time::ptime time;
     bool repeating;
-    output_t() : repeating( false ) {}
-    output_t( const boost::posix_time::ptime& time, bool repeating ) : time( time ), repeating( repeating ) {}
+    unsigned repeat_count;
+    output_t() : repeating( false ), repeat_count(0) {}
+    output_t( const boost::posix_time::ptime& time, bool repeating, unsigned repeat_count=0 ) : time( time ), repeating( repeating ), repeat_count(repeat_count) {}
 };
 
 namespace comma { namespace visiting {
@@ -123,11 +125,13 @@ template <> struct traits< output_t >
     {
         v.apply( "time", p.time );
         v.apply( "repeating", p.repeating );
+        v.apply( "repeat_count", p.repeat_count );
     }
     template < typename K, typename V > static void visit( const K&, output_t& p, V& v )
     {
         v.apply( "time", p.time );
         v.apply( "repeating", p.repeating );
+        v.apply( "repeat_count", p.repeat_count );
     }
 };
     
@@ -210,6 +214,7 @@ int main( int ac, char** av )
         std::ios_base::sync_with_stdio( false ); // unsync to make rdbuf()->in_avail() working
         std::cin.tie( NULL ); // std::cin is tied to std::cout by default
         bool repeating = false;
+        unsigned repeat_count=0;
         bool pace = options.exists( "--pace" );
         if( pace && !period ) { std::cerr << "csv-repeat: for --pace, please specify --period" << std::endl; return 1; }
         while( is->good() && !end_of_stream )
@@ -253,12 +258,14 @@ int main( int ac, char** av )
                     else { std::cout << std::endl; }
                 }
                 end_of_stream = repeating = false;
+                repeat_count=0;
                 if( pace ) { boost::this_thread::sleep( *period ); } // todo: quick and dirty; fix it properly for --pace, to make sure sleep happens after each record only once
             }
             if( !is->good() || end_of_stream ) { break; }
             if( repeating )
             {
                 if( !period ) { std::cerr << "csv-repeat: input data timed out" << std::endl; return 1; }
+                repeat_count++;
                 if( csv.binary() )
                 {
                     if( last_record )
@@ -266,7 +273,7 @@ int main( int ac, char** av )
                         std::cout.write( last_record, record_size );
                         /// do not do it! see the note inside csv::stream.h, search for passed<> class template
                         /// ::write( 1, last_record, record_size );
-                        if( ostream ) { ostream->write( output_t( boost::posix_time::microsec_clock::universal_time(), true ) ); }
+                        if( ostream ) { ostream->write( output_t( boost::posix_time::microsec_clock::universal_time(), true, repeat_count ) ); }
                     }
                 }
                 else
@@ -277,7 +284,7 @@ int main( int ac, char** av )
                         if( ostream )
                         {
                             std::cout << csv.delimiter;
-                            ostream->write( output_t( boost::posix_time::microsec_clock::universal_time(), true ) );
+                            ostream->write( output_t( boost::posix_time::microsec_clock::universal_time(), true, repeat_count ) );
                         }
                         else { std::cout << std::endl; }
                     }
@@ -292,19 +299,20 @@ int main( int ac, char** av )
             {
                 boost::this_thread::sleep( *period ); // quick and dirty
                 if( is_shutdown ) { break; }
+                repeat_count++;
                 if( csv.binary() )
                 {
                     if( !last_record ) { break; }
                     std::cout.write( last_record, record_size );
                     /// do not do it! see the note inside csv::stream.h, search for passed<> class template
                     /// ::write( 1, last_record, record_size );
-                    if( ostream ) { ostream->write( output_t( boost::posix_time::microsec_clock::universal_time(), true ) ); }
+                    if( ostream ) { ostream->write( output_t( boost::posix_time::microsec_clock::universal_time(), true, repeat_count ) ); }
                 }
                 else
                 {
                     if( last_line.empty() ) { break; }
                     std::cout << last_line;
-                    if( ostream ) { std::cout << csv.delimiter; ostream->write( output_t( boost::posix_time::microsec_clock::universal_time(), true ) ); }
+                    if( ostream ) { std::cout << csv.delimiter; ostream->write( output_t( boost::posix_time::microsec_clock::universal_time(), true, repeat_count ) ); }
                     else { std::cout << std::endl; }
                 }
                 std::cout.flush();
