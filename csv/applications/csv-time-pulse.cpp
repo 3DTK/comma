@@ -46,7 +46,7 @@ void bash_completion( unsigned const ac, char const * const * av )
 {
     static char const * const arguments[] = {
         " --binary -b --delimiter -d --fields -f --flush --format --full-xpath --help -h --quote --precision --verbose -v",
-        " --input-fields --output-fields --output-format"
+        " --input-fields"
     };
     std::cout << arguments << std::endl;
     exit( 0 );
@@ -60,10 +60,14 @@ static void usage( bool )
     std::cerr << std::endl;
     std::cerr << "usage: cat a.csv | csv-time-pulse [<options>]" << std::endl;
     std::cerr << std::endl;
-    std::cerr << "<options>" << std::endl;
+    std::cerr << "Options:" << std::endl;
     std::cerr << comma::csv::options::usage( "t,duration,active" ) << std::endl;
     std::cerr << std::endl;
-    std::cerr << "examples" << std::endl;
+    std::cerr << "Info:" << std::endl;
+    std::cerr << "    --help,-h; print usage and exit." << std::endl;
+    std::cerr << "    --input-fields; print input fields to stdout and exit." << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "Examples" << std::endl;
     std::cerr << "    > 20181111T000000,2,1 | csv-time-pulse" << std::endl;
     std::cerr << "    20181111T000000,2,1" << std::endl;
     std::cerr << "    20181111T000000,2,0" << std::endl;
