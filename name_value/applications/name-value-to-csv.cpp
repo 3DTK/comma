@@ -57,7 +57,7 @@ static void usage( bool )
     std::cerr << std::endl;
     std::cerr << "examples" << std::endl;
     std::cerr << "    indexed data" << std::endl;
-    std::cerr << "        cat <<EOF | $scriptname --fields=name,value,status --prefix=my/test" << std::endl;
+    std::cerr << "        cat <<EOF | name-value-to-csv --fields=name,value,status --prefix=my/test" << std::endl;
     std::cerr << "        my/test[0]/name=a" << std::endl;
     std::cerr << "        my/test[0]/value=10" << std::endl;
     std::cerr << "        my/test[0]/status=0" << std::endl;
