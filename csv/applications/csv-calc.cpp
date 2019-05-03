@@ -138,6 +138,7 @@ static void usage( bool verbose )
     }
     std::cerr << "examples" << std::endl;
     std::cerr << "    seq 1 1000 | " << comma::verbose.app_name() << " percentile=0.9" << std::endl;
+    std::cerr << "    seq 1 1000 | " << comma::verbose.app_name() << " percentile=0.1,percentile=0.9" << std::endl;
     std::cerr << "    seq 1 1000 | " << comma::verbose.app_name() << " percentile=0.9:interpolate --verbose" << std::endl;
     std::cerr << std::endl;
     std::cerr << "    {(seq 1 500 | csv-paste \"-\" \"value=0\") ; (seq 1 100 | csv-paste \"-\" \"value=1\") ; (seq 501 1000 | csv-paste \"-\" \"value=0\")} | " << comma::verbose.app_name() << " --fields=a,block percentile=0.9" << std::endl;
