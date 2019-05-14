@@ -42,55 +42,60 @@ using namespace comma;
 
 static void usage( bool verbose=false )
 {
+    std::cerr << std::endl;
     std::cerr << "Perform reshaping operations on input data" << std::endl;
     std::cerr << std::endl;
     std::cerr << "operations" << std::endl;
     std::cerr << "    concatenate: group input records for concatenation into output records." << std::endl;
-    std::cerr << "                 the user can choose non-overlapping or overlapping grouping (sliding window) mode." << std::endl;
-    std::cerr << "    loop:        same as concatenate, but with an additional last record:" << std::endl;
-    std::cerr << "                 last input record concatenated with the first record (hence, 'loop')" << std::endl;
-    std::cerr << "                 this mode always uses the sliding window for overlapping groups" << std::endl;
+    std::cerr << "                 The user can choose non-overlapping or overlapping grouping" << std::endl;
+    std::cerr << "                 (sliding window) mode." << std::endl;
+    std::cerr << "    loop:        same as concatenate, but additionally the input record is" << std::endl;
+    std::cerr << "                 concatenated with the first record (hence, 'loop')." << std::endl;
+    std::cerr << "                 Always uses the sliding window for overlapping groups" << std::endl;
     std::cerr << std::endl;
     std::cerr << "Usage: cat data.csv | csv-shape <operation> [<options>]" << std::endl;
     std::cerr << std::endl;
     std::cerr << "options" << std::endl;
-    std::cerr << "    --binary,-b=[<format>]: in binary mode: format string of the input csv data types" << std::endl;
-    std::cerr << "    --delimiter,-d=[<char>]; default=','; in ascii mode, field separating character." << std::endl;
-    std::cerr << "    --help,-h;  see this usage message" << std::endl;
+    std::cerr << "    --help,-h:  see this usage message" << std::endl;
     std::cerr << "    --verbose,-v: more output to stderr, shows examples with --help,-h" << std::endl;
+    std::cerr << "    --binary,-b=[<format>]: in binary mode: format string of the input data" << std::endl;
+    std::cerr << "    --delimiter,-d=[<char>]: default=','; in ascii mode, field separator" << std::endl;
     std::cerr << std::endl;
     if( verbose ) { std::cerr << comma::csv::format::usage() << std::endl; }
     std::cerr << "operations options" << std::endl;
     std::cerr << std::endl;
-    std::cerr << "   common options" << std::endl;
-    std::cerr << "      --size,-n=<num>; number of input records in each grouping, range: 2 and above" << std::endl;
-    std::cerr << "      --step=<num>; default=1; relative offset of the records to be concatenated" << std::endl;
-    std::cerr << "      --expected-records; output the expected records for given --size and --step, and exit" << std::endl;
-    std::cerr << "   concatenate" << std::endl;
-    std::cerr << "      --bidirectional; output records in both directions (e.g. a,b; b,a)" << std::endl;
-    std::cerr << "      --reverse; output records in reverse order (e.g. b,a)" << std::endl;
-    std::cerr << "      --sliding-window,-w; use a sliding window to group input records, see examples" << std::endl;
-    std::cerr << "   loop" << std::endl;
-    std::cerr << "      --bidirectional; output records in both directions (e.g. a,b; b,a)" << std::endl;
-    std::cerr << "      --reverse; output records in reverse order (e.g. b,a)" << std::endl;
+    std::cerr << "   concatenate and loop options" << std::endl;
+    std::cerr << "      --size,-n=<num>: number of input records in each grouping, where num >= 2" << std::endl;
+    std::cerr << "      --step=<num>: default=1; relative offset of the records to be concatenated" << std::endl;
+    std::cerr << "      --expected-records: output expected records for given --size and --step" << std::endl;
+    std::cerr << "      --bidirectional: output records in both directions (e.g. a,b; b,a)" << std::endl;
+    std::cerr << "      --reverse: output records in reverse order (e.g. b,a)" << std::endl;
+    std::cerr << "      --sliding-window,-w: use a sliding window to group input records" << std::endl;
+    std::cerr << "      --bidirectional: output records in both directions (e.g. a,b; b,a)" << std::endl;
+    std::cerr << "      --reverse: output records in reverse order (e.g. b,a)" << std::endl;
     std::cerr << std::endl;
     if( verbose )
     {
         std::cerr << "examples" << std::endl;   
         std::cerr << "   concatenate" << std::endl;
         std::cerr << "      non overlaping groups:" << std::endl;
-        std::cerr << "          concatenate each group of 5 input records into one output record." << std::endl;
-        std::cerr << "          input records 1 to 5 create the first output record, input records 6-10 create the second output record, and so forth." << std::endl;
-        std::cerr << "              seq 1 15 | csv-shape concatenate -n 5" << std::endl;
+        std::cerr << "         Concatenate each group of 5 input records into one output record." << std::endl;
+        std::cerr << "         Input records 1 to 5 create the first output record, input records" << std::endl;
+        std::cerr << "         6 to 10 create the second output record, and so forth." << std::endl;
+        std::cerr << "            seq 1 15 | csv-shape concatenate -n 5" << std::endl;
+        std::cerr << std::endl;
         std::cerr << "      overlapping groups:" << std::endl;
-        std::cerr << "          move a sliding window of size 5 along the input records, every time the sliding window moves, make an output record from window" << std::endl;
-        std::cerr << "          input records 1 to 5 create the first output record, input records 2 to 6 create the second record, input records 3 to 7 create the third record, and so forth" << std::endl;
-        std::cerr << "              seq 1 10 | csv-shape concatenate -n 5 --sliding-window" << std::endl;
+        std::cerr << "         Move a sliding window of size 5 along the input records, every time" << std::endl;
+        std::cerr << "         the sliding window moves, make an output record from window." << std::endl;
+        std::cerr << "         Input records 1 to 5 create the first output record, input records" << std::endl;
+        std::cerr << "         2 to 6 create the second record, and so forth." << std::endl;
+        std::cerr << "            seq 1 10 | csv-shape concatenate -n 5 --sliding-window" << std::endl;
     }
     else
     {
         std::cerr << "examples: run csv-shape --help --verbose for more..." << std::endl;
     }
+    std::cerr << std::endl;
     exit( 0 );
 }
 
