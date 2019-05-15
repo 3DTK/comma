@@ -43,7 +43,7 @@ using namespace comma;
 void bash_completion( unsigned const ac, char const * const * av )
 {
     static const char* completion_options =
-        " concatenate loop flatten"
+        " concatenate loop flatten unflatten"
         " --help -h --verbose -v"
         " --binary -b --delimeter -d"
         " --size,-n"
@@ -73,6 +73,7 @@ static void usage( bool verbose=false )
     std::cerr << "                 concatenated with the first record (hence, 'loop')." << std::endl;
     std::cerr << "                 Always uses the sliding window for overlapping groups" << std::endl;
     std::cerr << "    flatten:     flatten block-wise data so it's one record per block" << std::endl;
+    std::cerr << "    unflatten:   unflattens flattened data" << std::endl;
     std::cerr << std::endl;
     std::cerr << "Usage: cat data.csv | csv-shape <operation> [<options>]" << std::endl;
     std::cerr << std::endl;
@@ -99,6 +100,14 @@ static void usage( bool verbose=false )
     std::cerr << "      --header,--header-fields=[<fields>]: header fields to output" << std::endl;
     std::cerr << "      --output,--output-fields,-o=<fields>: recurring fields to output" << std::endl;
     std::cerr << std::endl;
+    std::cerr << "      hhoo / hhoo / hhoo => hhoooooo (until a new block)" << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "   unflatten options" << std::endl;
+    std::cerr << "      --header,--header-fields=[<fields>]: header fields in input" << std::endl;
+    std::cerr << "      --recurring,--recurring-fields=[<fields>]: recurring fields in input" << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "      hhrrrrrr => hhrr / hhrr / hhrr" << std::endl;
+    std::cerr << std::endl;
     if( verbose )
     {
         std::cerr << "examples" << std::endl;   
@@ -119,22 +128,23 @@ static void usage( bool verbose=false )
         std::cerr << "   flatten" << std::endl;
         std::cerr << "      echo -e \"a,0,1,2\\nb,0,3,4\\nc,1,5,6\\nd,1,7,8\" \\" << std::endl;
         std::cerr << "          | csv-shape flatten --fields s,block,a,b --output a,b --header s,block" << std::endl;
+        std::cerr << std::endl;
+        std::cerr << "   unflatten" << std::endl;
+        std::cerr << "      echo -e \"a,0,1,2,w,3,4,x\\nc,1,5,6,y,7,8,z\" \\" << std::endl;
+        std::cerr << "          | csv-shape unflatten --header s,block --recurring a,b,z" << std::endl;
 
     }
-    else
-    {
-        std::cerr << "examples: run csv-shape --help --verbose for more..." << std::endl;
-    }
+    else { std::cerr << "run csv-shape --help --verbose for examples of use" << std::endl; }
     std::cerr << std::endl;
     exit( 0 );
 }
 
 std::string operation;
 
-class concatenate
+class concatenate_op
 {
 public:
-    concatenate()
+    concatenate_op()
         : use_sliding_window_(false)
         , bidirectional_(false)
         , reverse_(false)
@@ -265,19 +275,19 @@ private:
     }
 };
 
-class flatten
+struct field
+{
+    std::string name;
+    boost::optional< unsigned int > index;
+    unsigned int offset;
+    unsigned int size;
+    field( const std::string& name ) : name( name ) {}
+};
+
+class flatten_op
 {
 public:
-    struct field
-    {
-        std::string name;
-        boost::optional< unsigned int > index;
-        unsigned int offset;
-        unsigned int size;
-        field( const std::string& name ) : name( name ) {}
-    };
-
-    flatten( const comma::command_line_options& options, const comma::csv::options& csv )
+    flatten_op( const comma::command_line_options& options, const comma::csv::options& csv )
     {
         for( auto f: comma::split( options.value< std::string >( "--output-fields,--output,-o" ), ',' ))
         {
@@ -408,12 +418,118 @@ private:
     boost::optional< field > block_field;
 };
 
+class unflatten_op
+{
+public:
+    unflatten_op( const comma::command_line_options& options, const comma::csv::options& csv )
+    {
+        for( auto f: comma::split( options.value< std::string >( "--header-fields,--header", "" ), ',' ))
+        {
+            if( !f.empty() ) { header_fields.push_back( field( f )); }
+        }
+        for( auto f: comma::split( options.value< std::string >( "--recurring-fields,--recurring", "" ), ',' ))
+        {
+            if( !f.empty() ) { recurring_fields.push_back( field( f )); }
+        }
+        std::vector< field > all_fields;
+
+        for( unsigned int i = 0; i < header_fields.size(); ++i )
+        {
+            header_fields[i].index = i;
+            if( csv.binary() )
+            {
+                header_fields[i].offset = csv.format().offset( i ).offset;
+                header_fields[i].size = csv.format().offset( i ).size;
+            }
+        }
+        for( unsigned int i = 0; i < recurring_fields.size(); ++i )
+        {
+            unsigned int index = header_fields.size() + i;
+            recurring_fields[i].index = index;
+            if( csv.binary() )
+            {
+                recurring_fields[i].offset = csv.format().offset( index ).offset;
+                recurring_fields[i].size = csv.format().offset( index ).size;
+            }
+        }
+    }
+
+    int run( const comma::csv::options& csv )
+    {
+        if( csv.binary() )
+        {
+            std::vector< char > buf( csv.format().size() );
+            while( std::cin.good() && !std::cin.eof() )
+            {
+                std::cin.read( &buf[0], csv.format().size() );
+                if( std::cin.gcount() == 0 ) { continue; }
+                if( std::cin.gcount() < int( csv.format().size() ))
+                {
+                    std::cerr << comma::verbose.app_name() << ": expected " << csv.format().size()
+                              << " bytes, got only " << std::cin.gcount() << std::endl;
+                    return 1;
+                }
+
+                std::size_t header_size = 0;
+                std::size_t recurring_size = 0;
+                for( auto f: header_fields ) { header_size += f.size; }
+                for( auto f: recurring_fields ) { recurring_size += f.size; }
+
+                for( std::size_t offset = recurring_fields[0].offset;
+                     offset < csv.format().size(); offset += recurring_size )
+                {
+                    std::cout.write( &buf[ 0 ], header_size );
+                    std::cout.write( &buf[ offset ], recurring_size );
+                }
+            }
+        }
+        else
+        {
+            while( std::cin.good() && !std::cin.eof() )
+            {
+                std::string line;
+                std::getline( std::cin, line );
+                if( !line.empty() && *line.rbegin() == '\r' ) { line = line.substr( 0, line.length() - 1 ); } // windows... sigh...
+                if( line.empty() ) { continue; }
+                std::vector< std::string > v = comma::split( line, csv.delimiter );
+
+                if(( v.size() - header_fields.size() ) % recurring_fields.size() != 0 )
+                {
+                    std::cerr << comma::verbose.app_name() << ": input record has " << v.size() << " fields which doesn't match header and recurring parameters" << std::endl;
+                    return 1;
+                }
+
+                for( unsigned int i = header_fields.size(); i < v.size(); i += recurring_fields.size() )
+                {
+                    std::string delimiter;
+                    for( unsigned int j = 0; j < header_fields.size(); ++j )
+                    {
+                        std::cout << delimiter << v[j];
+                        delimiter = csv.delimiter;
+                    }
+                    for( unsigned int j = 0; j < recurring_fields.size(); ++j )
+                    {
+                        std::cout << delimiter << v[i+j];
+                        delimiter = csv.delimiter;
+                    }
+                    std::cout << std::endl;
+                }
+            }
+        }
+        return 0;
+    }
+
+private:
+    std::vector< field > header_fields;
+    std::vector< field > recurring_fields;
+};
+
 namespace comma { namespace visiting {
 
-template <> struct traits< concatenate::input_t >
+template <> struct traits< concatenate_op::input_t >
 {
-    template < typename K, typename V > static void visit( const K&, const concatenate::input_t& p, V& v ) { v.apply("block", p.block); }
-    template < typename K, typename V > static void visit( const K&, concatenate::input_t& p, V& v ) { v.apply("block", p.block); }
+    template < typename K, typename V > static void visit( const K&, const concatenate_op::input_t& p, V& v ) { v.apply("block", p.block); }
+    template < typename K, typename V > static void visit( const K&, concatenate_op::input_t& p, V& v ) { v.apply("block", p.block); }
 };
 
 } } // namespace comma { namespace visiting {
@@ -431,12 +547,10 @@ int main( int ac, char** av )
         if( operation == "concatenate" || operation == "loop" )
         {
             if (csv.fields.empty()) { csv.fields="a"; }
-            return concatenate().run( options, csv );
+            return concatenate_op().run( options, csv );
         }
-        else if( operation == "flatten" )
-        {
-            return flatten( options, csv ).run( csv );
-        }
+        else if( operation == "flatten" ) { return flatten_op( options, csv ).run( csv ); }
+        else if( operation == "unflatten" ) { return unflatten_op( options, csv ).run( csv ); }
         std::cerr << comma::verbose.app_name() << ": operation not supported or unknown: '" << operation << '\'' << std::endl;
         return 1;
     }

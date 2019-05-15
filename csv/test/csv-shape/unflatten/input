@@ -1,0 +1,5 @@
+examples[0]="echo -e \"a,0,1,2,w,3,4,x\\nc,1,5,6,y,7,8,z\" | csv-shape unflatten --header s,block --recurring a,b,z"
+
+binary[0]="echo -e \"a,0,1,2,w,3,4,x\\nc,1,5,6,y,7,8,z\" | csv-to-bin s[1],ui,2ui,s[1],2ui,s[1] | csv-shape unflatten --binary s[1],ui,2ui,s[1],2ui,s[1] --header s,block --recurring a,b,z | csv-from-bin s[1],3ui,s[1]"
+
+error[0]="echo -e \"a,0,1,2,3,4,z\\nc,1,5,6,7,8,y\" | csv-shape unflatten --header s,block --recurring a,b,z"
