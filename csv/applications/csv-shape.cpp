@@ -38,8 +38,6 @@
 #include "../stream.h"
 #include "../format.h"
 
-using namespace comma;
-
 void bash_completion( unsigned const ac, char const * const * av )
 {
     static const char* completion_options =
