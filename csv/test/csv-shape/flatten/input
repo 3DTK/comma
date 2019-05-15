@@ -1,0 +1,4 @@
+examples[0]="echo -e \"a,0,1,2\\nb,0,3,4\\nc,1,5,6\\nd,1,7,8\" | csv-shape flatten --fields s,block,a,b --output a,b --header s,block"
+output[0]="echo -e \"a,0,1,2\\nb,0,3,4\\nc,1,5,6\\nd,1,7,8\" | csv-shape flatten --fields s,block,a,b --output b,a"
+fields[0]="echo -e \"a,0,1,2\\nb,0,3,4\\nc,1,5,6\\nd,1,7,8\" | csv-shape flatten --fields s,block,,b --output s,b"
+binary[0]="echo -e \"a,0,1,2\\nb,0,3,4\\nc,1,5,6\\nd,1,7,8\" | csv-to-bin s[1],3ui | csv-shape flatten --fields s,block,a,b --binary s[1],3ui --output a,b --header s,block | csv-from-bin s[1],5ui"
