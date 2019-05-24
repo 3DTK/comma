@@ -271,8 +271,8 @@ int main( int ac, char** av )
         }
         return 0;
     }
-    catch( std::exception& ex ) { std::cerr << "csv-size: " << ex.what() << std::endl; }
-    catch( ... ) { std::cerr << "csv-size: unknown exception" << std::endl; }
+    catch( std::exception& ex ) { std::cerr << "csv-thin: " << ex.what() << std::endl; }
+    catch( ... ) { std::cerr << "csv-thin: unknown exception" << std::endl; }
     usage();
 }
 
