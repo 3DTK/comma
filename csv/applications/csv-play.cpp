@@ -127,7 +127,13 @@ class key_press_handler_t
 public:
     enum states { running, paused, read_once, read_block };
     
-    key_press_handler_t( bool interactive, bool paused_at_start ): key_press_( interactive ), paused_( paused_at_start ), state_( paused_ ? paused : running ) { if( paused_at_start ) { std::cerr << "csv-play: paused at start" << std::endl; } }
+    key_press_handler_t( bool interactive, bool paused_at_start )
+        : key_press_( interactive )
+        , paused_( paused_at_start )
+        , state_( paused_ ? paused : running )
+    {
+        if( paused_at_start ) { std::cerr << "csv-play: paused at start" << std::endl; }
+    }
     
     void update( boost::posix_time::ptime t )
     {
