@@ -82,8 +82,8 @@ static void usage()
     std::cerr << "               csv-play file1;pipe;clients=1 file2;tcp:1234;clients=3" << std::endl;
     std::cerr << "    --interactive,-i: react to key presses:" << std::endl;
     std::cerr << "                      <space>: pause, resume" << std::endl;
-    std::cerr << "                      left or down arrow key: output one record at a time" << std::endl;
-    std::cerr << "                      shift left or down arrow key: TODO: output one block at a time" << std::endl;
+    std::cerr << "                      right or down arrow key: output one record at a time" << std::endl;
+    std::cerr << "                      shift right or down arrow key: TODO: output one block at a time" << std::endl;
     std::cerr << "    --no-flush : if present, do not flush the output stream ( use on high bandwidth sources )" << std::endl;
     std::cerr << "    --paused-at-start,--paused; if --interactive, then start playback as paused" << std::endl;
     std::cerr << "    --resolution=<second>: timestamp resolution; timestamps closer than this value will be" << std::endl;
@@ -160,15 +160,15 @@ public:
                         break;
                 };
                 break;
-            case 27:
+            case 27:                    // escape sequence for arrows: ESC-[
                 c = key_press_.read();
                 if( !c || *c != 91 ) { return; }
                 c = key_press_.read();
                 if( !c ) { return; }
                 switch( *c )
                 {
-                    case 66:
-                    case 67:
+                    case 66:            // down
+                    case 67:            // right
                         state_ = read_once;
                         break;  
                     default:
@@ -212,7 +212,7 @@ private:
             if( ::tcsetattr( fd_, TCSANOW, &new_termios ) < 0 ) { COMMA_THROW( comma::exception, "failed to set '" << tty << "'" ); }
             std::cerr << "csv-play: running in interactive mode" << std::endl;
             std::cerr << "          press <space> to pause or resume" << std::endl;
-            std::cerr << "          press left or down arrow key: output one record at a time" << std::endl;
+            std::cerr << "          press right or down arrow key: output one record at a time" << std::endl;
         }
         
         ~key_press_t_()
