@@ -145,18 +145,53 @@ static void usage()
     exit( -1 );
 }
 
+class playback_state_t
+{
+public:
+    playback_state_t() : state_( state::running ) {}
+
+    bool is_running() const { return state_ == state::running; }
+    bool is_paused() const { return state_ == state::paused; }
+
+    void pause( const boost::posix_time::ptime& t = boost::posix_time::not_a_date_time )
+    {
+        if( state_ != state::paused )
+        {
+            state_ = state::paused;
+            std::cerr << "csv-play: paused";
+            if( ! t.is_not_a_date_time() ) { std::cerr << " at " << boost::posix_time::to_iso_string( t ); }
+            std::cerr << std::endl;
+        }
+    }
+
+    void run()
+    {
+        if( state_ != state::running )
+        {
+            state_ = state::running;
+            std::cerr << "csv-play: resumed" << std::endl;
+        }
+    }
+
+    void read_once() { state_ = state::read_once; }
+
+    void has_read_once()
+    {
+        if( state_ == state::read_once ) { state_ = state::paused; }
+    }
+
+private:
+    enum class state { running, paused, read_once, read_block };
+
+    state state_;
+};
+
+static playback_state_t playback;
+
 class key_press_handler_t
 {
 public:
-    enum states { running, paused, read_once, read_block };
-    
-    key_press_handler_t( bool interactive, bool paused_at_start )
-        : key_press_( interactive || paused_at_start )
-        , paused_( paused_at_start )
-        , state_( paused_ ? paused : running )
-    {
-        if( paused_at_start ) { std::cerr << "csv-play: paused at start" << std::endl; }
-    }
+    key_press_handler_t( bool interactive ) : key_press_( interactive ) {}
     
     void update( boost::posix_time::ptime t )
     {
@@ -165,38 +200,15 @@ public:
         switch( *c )
         {
             case ' ':
-                switch( state_ )
-                {
-                    case running:
-                        std::cerr << "csv-play: paused at " << boost::posix_time::to_iso_string( t ) << std::endl;
-                        state_ = paused;
-                        break;
-                    case paused:
-                        std::cerr << "csv-play: resumed" << std::endl;
-                        state_ = running;
-                        break;
-                    case read_block:
-                        return; // never here, todo
-                    case read_once:
-                        std::cerr << "csv-play: resumed" << std::endl;
-                        state_ = running;
-                        break;
-                };
+                if( playback.is_running() ) { playback.pause( t ); }
+                else { playback.run(); }
                 break;
             case 27:                    // escape sequence for arrows: ESC-[
                 c = key_press_.read();
                 if( !c || *c != 91 ) { return; }
                 c = key_press_.read();
                 if( !c ) { return; }
-                switch( *c )
-                {
-                    case 66:            // down
-                    case 67:            // right
-                        state_ = read_once;
-                        break;  
-                    default:
-                        return;
-                }
+                if( *c == 66 || *c == 67 ) { playback.read_once(); } // down or right arrow
                 break;
             case 't':
                 std::cerr << boost::posix_time::to_iso_string( t ) << std::endl;
@@ -204,21 +216,6 @@ public:
             default:
                 break;
         }
-    }
-    
-    states state() const { return state_; }
-    
-    void has_read_once() 
-    {
-        switch( state_ )
-        {
-            case running:
-            case paused:
-            case read_block:
-                return;
-            case read_once:
-                state_ = paused;
-        };
     }
     
 private:
@@ -264,9 +261,8 @@ private:
         int fd_;
         struct termios old_termios_;
     };
+
     key_press_t_ key_press_;
-    bool paused_;
-    states state_;
 };
 
 int main( int argc, char** argv )
@@ -298,13 +294,14 @@ int main( int argc, char** argv )
         boost::posix_time::ptime totime;
         if( !to.empty() ) { totime = boost::posix_time::from_iso_string( to ); }
         multiplay.reset( new comma::Multiplay( sourceConfigs, 1.0 / speed, quiet, boost::posix_time::microseconds( static_cast<unsigned int> (resolution * 1000000) ), fromtime, totime, flush ) );
-        key_press_handler_t key_press_handler( options.exists( "--interactive,-i" ), options.exists( "--paused,--paused-at-start" ) );
+        if( options.exists( "--paused,--paused-at-start" )) { playback.pause(); }
+        key_press_handler_t key_press_handler( options.exists( "--interactive,-i" ) || options.exists( "--paused,--paused-at-start" ));
         while( !shutdown_flag && std::cout.good() && !std::cout.bad() && !std::cout.eof() )
         {
             key_press_handler.update( multiplay->now() );
-            if( key_press_handler.state() == key_press_handler_t::paused ) { boost::this_thread::sleep( boost::posix_time::millisec( 200 ) ); continue; }
+            if( playback.is_paused() ) { boost::this_thread::sleep( boost::posix_time::millisec( 200 ) ); continue; }
             if( !multiplay->read() ) { break; }
-            key_press_handler.has_read_once();
+            playback.has_read_once();
         }
         multiplay->close();
         multiplay.reset();
