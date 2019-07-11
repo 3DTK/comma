@@ -84,6 +84,7 @@ static void usage()
     std::cerr << "                      <space>: pause, resume" << std::endl;
     std::cerr << "                      right or down arrow key: output one record at a time" << std::endl;
     std::cerr << "                      shift right or down arrow key: TODO: output one block at a time" << std::endl;
+    std::cerr << "                      <t>: output current timestamp to stderr" << std::endl;
     std::cerr << "    --no-flush : if present, do not flush the output stream ( use on high bandwidth sources )" << std::endl;
     std::cerr << "    --paused-at-start,--paused; if --interactive, then start playback as paused" << std::endl;
     std::cerr << "    --resolution=<second>: timestamp resolution; timestamps closer than this value will be" << std::endl;
@@ -178,6 +179,10 @@ public:
                     default:
                         return;
                 }
+                break;
+            case 't':
+                std::cerr << boost::posix_time::to_iso_string( t ) << std::endl;
+                break;
             default:
                 break;
         }
@@ -216,7 +221,8 @@ private:
             if( ::tcsetattr( fd_, TCSANOW, &new_termios ) < 0 ) { COMMA_THROW( comma::exception, "failed to set '" << tty << "'" ); }
             std::cerr << "csv-play: running in interactive mode" << std::endl;
             std::cerr << "          press <space> to pause or resume" << std::endl;
-            std::cerr << "          press right or down arrow key: output one record at a time" << std::endl;
+            std::cerr << "          press right or down arrow key to output one record at a time" << std::endl;
+            std::cerr << "          press <t> to output current timestamp to stderr" << std::endl;
         }
         
         ~key_press_t_()
