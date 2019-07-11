@@ -43,7 +43,6 @@ class play
 {
 public:
     play( double speed = 1.0, bool quiet = false, const boost::posix_time::time_duration& resolution = boost::posix_time::milliseconds(1) );
-    play( const boost::posix_time::ptime& first, double speed = 1.0, bool quiet = false, const boost::posix_time::time_duration& resolution = boost::posix_time::milliseconds(1) );
 
     void wait( const boost::posix_time::ptime& time );
 

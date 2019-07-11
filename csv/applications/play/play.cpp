@@ -37,6 +37,9 @@
 namespace comma { namespace csv { namespace impl {
     
 /// constructor    
+/// @param speed slow-down factor: 1.0 = real time, 2.0 = twice as slow etc...
+/// @param quiet if true, do not output warnings if we can not keep up with the desired playback speed
+/// @param resolution expected resolution from the sleep function
 play::play( double speed, bool quiet, const boost::posix_time::time_duration& resolution ):
     m_speed( speed ),
     m_resolution( resolution ),
@@ -45,27 +48,6 @@ play::play( double speed, bool quiet, const boost::posix_time::time_duration& re
     m_quiet( quiet )
 {
 }
-
-/// constructor
-/// @param first first timestamp
-/// @param speed slow-down factor: 1.0 = real time, 2.0 = twice as slow etc...
-/// @param quiet if true, do not output warnings if we can not keep up with the desired playback speed
-/// @param resolution expected resolution from the sleep function
-play::play( const boost::posix_time::ptime& first, double speed, bool quiet, const boost::posix_time::time_duration& resolution ):
-
-    m_systemFirst( boost::get_system_time() ),
-    m_offset( m_systemFirst - first ),
-    m_first( first ),
-    m_last( first ),
-    m_speed( speed ),
-    m_resolution( resolution ),
-    m_lag( false ),
-    m_lagCounter( 0U ),
-    m_quiet( quiet )
-{
-    
-}
-
 
 /// wait until a timestamp
 /// @param time timestamp as ptime
