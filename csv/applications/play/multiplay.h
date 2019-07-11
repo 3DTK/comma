@@ -81,6 +81,8 @@ class Multiplay
         
         boost::posix_time::ptime now() const { return now_; }
 
+        void paused_for( const boost::posix_time::time_duration& pause_duration ) { m_play.paused_for( pause_duration ); }
+
     private:
         std::vector<SourceConfig> m_configs;
         std::vector< boost::shared_ptr< comma::io::istream > > istreams_;

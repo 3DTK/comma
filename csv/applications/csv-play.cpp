@@ -145,6 +145,8 @@ static void usage()
     exit( -1 );
 }
 
+static boost::scoped_ptr< comma::Multiplay > multiplay;
+
 class playback_state_t
 {
 public:
@@ -158,32 +160,42 @@ public:
         if( state_ != state::paused )
         {
             state_ = state::paused;
-            std::cerr << "csv-play: paused";
-            if( ! t.is_not_a_date_time() ) { std::cerr << " at " << boost::posix_time::to_iso_string( t ); }
-            std::cerr << std::endl;
+            paused_time_ = boost::posix_time::microsec_clock::universal_time();
+            if( ! t.is_not_a_date_time() ) { std::cerr << "csv-play: paused at " << boost::posix_time::to_iso_string( t ) << std::endl; }
         }
+    }
+
+    void unpause()
+    {
+        multiplay->paused_for( boost::posix_time::microsec_clock::universal_time() - paused_time_ );
     }
 
     void run()
     {
         if( state_ != state::running )
         {
+            if( state_ == state::paused ) { unpause(); }
             state_ = state::running;
             std::cerr << "csv-play: resumed" << std::endl;
         }
     }
 
-    void read_once() { state_ = state::read_once; }
+    void read_once()
+    {
+        if( state_ == state::paused ) { unpause(); }
+        state_ = state::read_once;
+    }
 
     void has_read_once()
     {
-        if( state_ == state::read_once ) { state_ = state::paused; }
+        if( state_ == state::read_once ) { pause(); }
     }
 
 private:
     enum class state { running, paused, read_once, read_block };
 
     state state_;
+    boost::posix_time::ptime paused_time_;
 };
 
 static playback_state_t playback;
@@ -267,7 +279,6 @@ private:
 
 int main( int argc, char** argv )
 {
-    boost::scoped_ptr< comma::Multiplay > multiplay;
     try
     {
         const boost::array< comma::signal_flag::signals, 2 > signals = { { comma::signal_flag::sigint, comma::signal_flag::sigterm } };

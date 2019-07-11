@@ -48,6 +48,8 @@ public:
 
     void wait( const std::string& isoTime );
 
+    void paused_for( const boost::posix_time::time_duration& pause_duration );
+
 private:
     bool m_times_initialized;
     boost::posix_time::ptime m_systemFirst; /// system time at first timestamp

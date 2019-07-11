@@ -108,5 +108,12 @@ void play::wait( const std::string& isoTime )
     wait( boost::posix_time::from_iso_string( isoTime ) );
 }
 
+/// allow for a pause in playback
+/// @param pause_duration duration of pause
+void play::paused_for( const boost::posix_time::time_duration& pause_duration )
+{
+    if( m_times_initialized ) { m_systemFirst += pause_duration; }
+}
+
+
 } } } // namespace comma { namespace csv { namespace impl {
-    
