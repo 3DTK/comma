@@ -117,6 +117,10 @@ static void usage()
     std::cerr << "    output multiple inputs of the same format to stdout:" << std::endl;
     std::cerr << "        csv-play \"file1.csv;-\" \"file2.csv;-\" &" << std::endl;
     std::cerr << std::endl;
+    std::cerr << "    pause and step through output:" << std::endl;
+    std::cerr << "        echo 0 | csv-repeat --period 0.1 --yes | csv-paste - line-number \\" << std::endl;
+    std::cerr << "            | csv-time-stamp | csv-play --interactive" << std::endl;
+    std::cerr << std::endl;
     std::cerr << comma::contact_info << std::endl;
     std::cerr << std::endl;
     exit( -1 );
