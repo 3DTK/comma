@@ -40,12 +40,13 @@ namespace comma { namespace csv { namespace impl {
 /// @param speed slow-down factor: 1.0 = real time, 2.0 = twice as slow etc...
 /// @param quiet if true, do not output warnings if we can not keep up with the desired playback speed
 /// @param resolution expected resolution from the sleep function
-play::play( double speed, bool quiet, const boost::posix_time::time_duration& resolution ):
-    m_speed( speed ),
-    m_resolution( resolution ),
-    m_lag( false ),
-    m_lagCounter( 0U ),
-    m_quiet( quiet )
+play::play( double speed, bool quiet, const boost::posix_time::time_duration& resolution )
+    : m_times_initialized( false )
+    , m_speed( speed )
+    , m_resolution( resolution )
+    , m_lag( false )
+    , m_lagCounter( 0U )
+    , m_quiet( quiet )
 {
 }
 
@@ -54,13 +55,13 @@ play::play( double speed, bool quiet, const boost::posix_time::time_duration& re
 void play::wait( const boost::posix_time::ptime& time )
 {
 
-    if ( !m_offset )
+    if ( !m_times_initialized )
     {
         boost::posix_time::ptime systemTime = boost::get_system_time();
-        m_offset = systemTime - time;
         m_systemFirst = systemTime;
         m_first = time;
         m_last = time;
+        m_times_initialized = true;
     }
     else
     {        

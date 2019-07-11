@@ -49,8 +49,8 @@ public:
     void wait( const std::string& isoTime );
 
 private:
+    bool m_times_initialized;
     boost::posix_time::ptime m_systemFirst; /// system time at first timestamp
-    boost::optional< boost::posix_time::time_duration > m_offset; /// offset between timestamps and system time
     boost::posix_time::ptime m_first; /// first timestamp
     boost::posix_time::ptime m_last; /// last timestamp received
     const double m_speed;
