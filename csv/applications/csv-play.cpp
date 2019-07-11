@@ -60,6 +60,24 @@
 #include "../../csv/applications/play/play.h"
 #include "../../csv/applications/play/multiplay.h"
 
+static void bash_completion( unsigned const ac, char const* const* av )
+{
+    static const char* completion_options =
+        " --help -h"
+        " --speed --slowdown --slow"
+        " --quiet"
+        " --fields --binary"
+        " --clients"
+        " --interactive -i"
+        " --no-flush "
+        " --paused-at-start --paused"
+        " --resolution"
+        " --from --to"
+        ;
+    std::cout << completion_options << std::endl;
+    exit( 0 );
+}
+
 static void usage()
 {
     std::cerr << std::endl;
@@ -259,6 +277,7 @@ int main( int argc, char** argv )
         const boost::array< comma::signal_flag::signals, 2 > signals = { { comma::signal_flag::sigint, comma::signal_flag::sigterm } };
         comma::signal_flag shutdown_flag( signals );
         comma::command_line_options options( argc, argv );
+        if( options.exists( "--bash-completion" ) ) bash_completion( argc, argv );
         if( options.exists( "--help,-h" ) ) { usage(); }
         options.assert_mutually_exclusive( "--speed,--slow,--slowdown" );
         double speed = options.value( "--speed", 1.0 / options.value< double >( "--slow,--slowdown", 1.0 ) );
