@@ -81,7 +81,7 @@ static void usage()
     std::cerr << "               can be specified individually for each client, e.g." << std::endl;
     std::cerr << "               csv-play file1;pipe;clients=1 file2;tcp:1234;clients=3" << std::endl;
     std::cerr << "    --interactive,-i: react to key presses:" << std::endl;
-    std::cerr << "                      <whitespace>: pause, resume" << std::endl;
+    std::cerr << "                      <space>: pause, resume" << std::endl;
     std::cerr << "                      left or down arrow key: output one record at a time" << std::endl;
     std::cerr << "                      shift left or down arrow key: TODO: output one block at a time" << std::endl;
     std::cerr << "    --no-flush : if present, do not flush the output stream ( use on high bandwidth sources )" << std::endl;
@@ -141,7 +141,6 @@ public:
         if( !c ) { return; }
         switch( *c )
         {
-            case 10:
             case ' ':
                 switch( state_ )
                 {
@@ -212,7 +211,7 @@ private:
             new_termios.c_iflag &= ~( BRKINT | ICRNL | INPCK | ISTRIP | IXON );
             if( ::tcsetattr( fd_, TCSANOW, &new_termios ) < 0 ) { COMMA_THROW( comma::exception, "failed to set '" << tty << "'" ); }
             std::cerr << "csv-play: running in interactive mode" << std::endl;
-            std::cerr << "          press <whitespace> to pause or resume" << std::endl;
+            std::cerr << "          press <space> to pause or resume" << std::endl;
             std::cerr << "          press left or down arrow key: output one record at a time" << std::endl;
         }
         
