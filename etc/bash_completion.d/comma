@@ -114,7 +114,7 @@ complete -F _csv_time csv-time
 complete -F _csv_update csv-update
 
 # todo
-#     - add --bash-completion to csv-units, csv-update, comma-test-_comma_test_run
+#     - add --bash-completion to csv-update
 #     - install in the installation directory, if possible (if not, /etc is OK)
 
 _comma_bash_completion()
