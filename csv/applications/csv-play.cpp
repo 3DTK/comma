@@ -86,7 +86,7 @@ static void usage()
     std::cerr << "                      shift right or down arrow key: TODO: output one block at a time" << std::endl;
     std::cerr << "                      <t>: output current timestamp to stderr" << std::endl;
     std::cerr << "    --no-flush : if present, do not flush the output stream ( use on high bandwidth sources )" << std::endl;
-    std::cerr << "    --paused-at-start,--paused; if --interactive, then start playback as paused" << std::endl;
+    std::cerr << "    --paused-at-start,--paused: start playback as paused, implies --interactive" << std::endl;
     std::cerr << "    --resolution=<second>: timestamp resolution; timestamps closer than this value will be" << std::endl;
     std::cerr << "                           played without delay; the rationale is that microsleep used in csv-play" << std::endl;
     std::cerr << "                           (boost::this_thread::sleep()) is essentially imprecise and may create" << std::endl;
@@ -133,7 +133,7 @@ public:
     enum states { running, paused, read_once, read_block };
     
     key_press_handler_t( bool interactive, bool paused_at_start )
-        : key_press_( interactive )
+        : key_press_( interactive || paused_at_start )
         , paused_( paused_at_start )
         , state_( paused_ ? paused : running )
     {
