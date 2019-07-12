@@ -299,7 +299,7 @@ int main( int argc, char** argv )
         if( !from.empty() ) { fromtime = boost::posix_time::from_iso_string( from ); }
         boost::posix_time::ptime totime;
         if( !to.empty() ) { totime = boost::posix_time::from_iso_string( to ); }
-        multiplay.reset( new comma::Multiplay( sourceConfigs, 1.0 / speed, quiet, boost::posix_time::microseconds( static_cast<unsigned int> (resolution * 1000000) ), fromtime, totime, flush ) );
+        multiplay.reset( new comma::Multiplay( sourceConfigs, speed, quiet, boost::posix_time::microseconds( static_cast<unsigned int>( resolution * 1000000 )), fromtime, totime, flush ));
         if( options.exists( "--paused,--paused-at-start" )) { playback.pause(); }
         key_press_handler_t key_press_handler( options.exists( "--interactive,-i" ) || options.exists( "--paused,--paused-at-start" ));
         while( !shutdown_flag && std::cout.good() && !std::cout.bad() && !std::cout.eof() )

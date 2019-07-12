@@ -37,7 +37,7 @@
 namespace comma { namespace csv { namespace impl {
     
 /// constructor    
-/// @param speed slow-down factor: 1.0 = real time, 2.0 = twice as slow etc...
+/// @param speed speed-up factor: 1.0 = real time, 0.5 = half speed etc
 /// @param quiet if true, do not output warnings if we can not keep up with the desired playback speed
 /// @param resolution expected resolution from the sleep function
 play::play( double speed, bool quiet, const boost::posix_time::time_duration& resolution )
@@ -68,7 +68,7 @@ void play::wait( const boost::posix_time::ptime& time )
         if ( time > m_last )
         {
             boost::posix_time::ptime systemTime = boost::get_system_time();
-            const boost::posix_time::ptime target = m_systemFirst + boost::posix_time::milliseconds( static_cast<long>(( time - m_first ).total_milliseconds() * m_speed ) );
+            const boost::posix_time::ptime target = m_systemFirst + boost::posix_time::milliseconds( static_cast<long>(( time - m_first ).total_milliseconds() / m_speed ) );
             const boost::posix_time::time_duration lag = systemTime - target;
             if ( !m_quiet && ( lag > m_resolution ) ) // no need to be alarmed for a lag less than the expected accuracy
             {
