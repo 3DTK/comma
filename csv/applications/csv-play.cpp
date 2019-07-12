@@ -33,31 +33,26 @@
 #include <fcntl.h>
 #include <stdio.h>
 #ifdef WIN32
-#include <stdio.h>
 #include <io.h>
 #else
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
-#include <termios.h>
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #endif
 #include <termios.h>
 
 #include <iostream>
-#include <fstream>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
 #include "../../application/command_line_options.h"
 #include "../../application/contact_info.h"
 #include "../../application/signal_flag.h"
 #include "../../base/exception.h"
 #include "../../csv/options.h"
-#include "../../csv/stream.h"
 #include "../../csv/traits.h"
 #include "../../name_value/parser.h"
-#include "../../csv/applications/play/play.h"
 #include "../../csv/applications/play/multiplay.h"
 
 static void bash_completion( unsigned const ac, char const* const* av )
