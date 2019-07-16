@@ -73,6 +73,15 @@ static void bash_completion( unsigned const ac, char const* const* av )
     exit( 0 );
 }
 
+static void interactive_help( std::string prefix )
+{
+    prefix.assign( prefix.size(), ' ' );
+    std::cerr << prefix << "<space>: pause or resume" << std::endl;
+    std::cerr << prefix << "right or down arrow key: output one record at a time" << std::endl;
+    std::cerr << prefix << "<t>: output current timestamp to stderr" << std::endl;
+    std::cerr << prefix << "<q>: quit" << std::endl;
+}
+
 static void usage()
 {
     std::cerr << std::endl;
@@ -94,10 +103,7 @@ static void usage()
     std::cerr << "               can be specified individually for each client, e.g." << std::endl;
     std::cerr << "               csv-play file1;pipe;clients=1 file2;tcp:1234;clients=3" << std::endl;
     std::cerr << "    --interactive,-i: react to key presses:" << std::endl;
-    std::cerr << "                      <space>: pause, resume" << std::endl;
-    std::cerr << "                      right or down arrow key: output one record at a time" << std::endl;
-    std::cerr << "                      shift right or down arrow key: TODO: output one block at a time" << std::endl;
-    std::cerr << "                      <t>: output current timestamp to stderr" << std::endl;
+    interactive_help( "    --interactive,-i: " );
     std::cerr << "    --no-flush : if present, do not flush the output stream ( use on high bandwidth sources )" << std::endl;
     std::cerr << "    --paused-at-start,--paused: start playback as paused, implies --interactive" << std::endl;
     std::cerr << "    --resolution=<second>: timestamp resolution; timestamps closer than this value will be" << std::endl;
@@ -141,6 +147,7 @@ static void usage()
 }
 
 static boost::scoped_ptr< comma::Multiplay > multiplay;
+static bool quit = false;
 
 class playback_state_t
 {
@@ -217,6 +224,9 @@ public:
                 if( !c ) { return; }
                 if( *c == 66 || *c == 67 ) { playback.read_once(); } // down or right arrow
                 break;
+            case 'q':
+                quit = true;
+                break;
             case 't':
                 std::cerr << boost::posix_time::to_iso_string( t ) << std::endl;
                 break;
@@ -242,9 +252,7 @@ private:
             new_termios.c_iflag &= ~( BRKINT | ICRNL | INPCK | ISTRIP | IXON );
             if( ::tcsetattr( fd_, TCSANOW, &new_termios ) < 0 ) { COMMA_THROW( comma::exception, "failed to set '" << tty << "'" ); }
             std::cerr << "csv-play: running in interactive mode" << std::endl;
-            std::cerr << "          press <space> to pause or resume" << std::endl;
-            std::cerr << "          press right or down arrow key to output one record at a time" << std::endl;
-            std::cerr << "          press <t> to output current timestamp to stderr" << std::endl;
+            interactive_help( "csv-play: " );
         }
         
         ~key_press_t_()
@@ -302,7 +310,7 @@ int main( int argc, char** argv )
         multiplay.reset( new comma::Multiplay( sourceConfigs, speed, quiet, boost::posix_time::microseconds( static_cast<unsigned int>( resolution * 1000000 )), fromtime, totime, flush ));
         if( options.exists( "--paused,--paused-at-start" )) { playback.pause(); }
         key_press_handler_t key_press_handler( options.exists( "--interactive,-i" ) || options.exists( "--paused,--paused-at-start" ));
-        while( !shutdown_flag && std::cout.good() && !std::cout.bad() && !std::cout.eof() )
+        while( !shutdown_flag && !quit && std::cout.good() && !std::cout.bad() && !std::cout.eof() )
         {
             key_press_handler.update( multiplay->now() );
             if( playback.is_paused() ) { boost::this_thread::sleep( boost::posix_time::millisec( 200 ) ); continue; }
