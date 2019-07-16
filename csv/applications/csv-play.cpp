@@ -310,7 +310,7 @@ int main( int argc, char** argv )
         multiplay.reset( new comma::Multiplay( sourceConfigs, speed, quiet, boost::posix_time::microseconds( static_cast<unsigned int>( resolution * 1000000 )), fromtime, totime, flush ));
         if( options.exists( "--paused,--paused-at-start" )) { playback.pause(); }
         key_press_handler_t key_press_handler( options.exists( "--interactive,-i" ) || options.exists( "--paused,--paused-at-start" ));
-        while( !shutdown_flag && !quit && std::cout.good() && !std::cout.bad() && !std::cout.eof() )
+        while( !shutdown_flag && !quit && std::cout.good() )
         {
             key_press_handler.update( multiplay->now() );
             if( playback.is_paused() ) { boost::this_thread::sleep( boost::posix_time::millisec( 200 ) ); continue; }
