@@ -206,36 +206,56 @@ class key_press_handler_t
 {
 public:
     key_press_handler_t( bool interactive ) : key_press_( interactive ) {}
-    
+
     void update( boost::posix_time::ptime t )
     {
-        boost::optional< char > c = key_press_.read();
-        if( !c ) { return; }
-        switch( *c )
+        key k = get_key();
+        switch( k )
         {
-            case ' ':
+            case key::space:
                 if( playback.is_running() ) { playback.pause( t ); }
                 else { playback.run(); }
                 break;
-            case 27:                    // escape sequence for arrows: ESC-[
-                c = key_press_.read();
-                if( !c || *c != 91 ) { return; }
-                c = key_press_.read();
-                if( !c ) { return; }
-                if( *c == 66 || *c == 67 ) { playback.read_once(); } // down or right arrow
+            case key::down_arrow:
+            case key::right_arrow:
+                playback.read_once();
                 break;
-            case 'q':
+            case key::q:
                 quit = true;
                 break;
-            case 't':
+            case key::t:
                 std::cerr << boost::posix_time::to_iso_string( t ) << std::endl;
                 break;
-            default:
+            case key::none:
+            case key::other:
                 break;
         }
     }
     
 private:
+    enum class key { none, space, right_arrow, down_arrow, q, t, other };
+
+    key get_key()
+    {
+        boost::optional< char > c = key_press_.read();
+        if( !c ) { return key::none; }
+        switch( *c )
+        {
+            case ' ': return key::space;
+            case 'q': return key::q;
+            case 't': return key::t;
+            case 27:                    // escape sequence for arrows: ESC-[
+                c = key_press_.read();
+                if( !c || *c != 91 ) { break; }
+                c = key_press_.read();
+                if( !c ) { break; }
+                if( *c == 66 ) { return key::down_arrow; }
+                if( *c == 67 ) { return key::right_arrow; }
+                break;
+        }
+        return key::other;
+    }
+
     class key_press_t_
     {
     public:
