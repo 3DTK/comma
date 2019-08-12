@@ -106,6 +106,7 @@ static void usage()
     interactive_help( "    --interactive,-i: " );
     std::cerr << "    --no-flush : if present, do not flush the output stream ( use on high bandwidth sources )" << std::endl;
     std::cerr << "    --paused-at-start,--paused: start playback as paused, implies --interactive" << std::endl;
+    std::cerr << "    --pause-at=[<timestamp>]; pause when timestamp reached, implies --interactive" << std::endl;
     std::cerr << "    --resolution=<second>: timestamp resolution; timestamps closer than this value will be" << std::endl;
     std::cerr << "                           played without delay; the rationale is that microsleep used in csv-play" << std::endl;
     std::cerr << "                           (boost::this_thread::sleep()) is essentially imprecise and may create" << std::endl;
@@ -316,7 +317,7 @@ int main( int argc, char** argv )
         std::string to = options.value< std::string>( "--to", "" );
         bool quiet =  options.exists( "--quiet" );
         bool flush =  !options.exists( "--no-flush" );
-        std::vector< std::string > configstrings = options.unnamed( "--verbose,-v,--interactive,-i,--paused,--paused-at-start,--quiet,--flush,--no-flush","--slow,--slowdown,--speed,--resolution,--binary,--fields,--clients,--from,--to" );
+        std::vector< std::string > configstrings = options.unnamed( "--verbose,-v,--interactive,-i,--paused,--paused-at-start,--quiet,--flush,--no-flush","--pause-at,--slow,--slowdown,--speed,--resolution,--binary,--fields,--clients,--from,--to" );
         if( configstrings.empty() ) { configstrings.push_back( "-;-" ); }
         comma::csv::options csvoptions( argc, argv );
         comma::name_value::parser name_value("filename,output", ';', '=', false );
@@ -329,11 +330,24 @@ int main( int argc, char** argv )
         if( !to.empty() ) { totime = boost::posix_time::from_iso_string( to ); }
         multiplay.reset( new comma::Multiplay( sourceConfigs, speed, quiet, boost::posix_time::microseconds( static_cast<unsigned int>( resolution * 1000000 )), fromtime, totime, flush ));
         if( options.exists( "--paused,--paused-at-start" )) { playback.pause(); }
-        key_press_handler_t key_press_handler( options.exists( "--interactive,-i" ) || options.exists( "--paused,--paused-at-start" ));
+        boost::optional< boost::posix_time::ptime > pause_at_timestamp = boost::make_optional( options.exists( "--pause-at" ), boost::posix_time::from_iso_string( options.value< std::string >( "--pause-at" )));
+        key_press_handler_t key_press_handler(  options.exists( "--interactive,-i" )
+                                             || options.exists( "--paused,--paused-at-start" )
+                                             || options.exists( "--pause-at" ));
         while( !shutdown_flag && !quit && std::cout.good() )
         {
-            key_press_handler.update( multiplay->now() );
-            if( playback.is_paused() ) { boost::this_thread::sleep( boost::posix_time::millisec( 200 ) ); continue; }
+            boost::posix_time::ptime now = multiplay->now();
+            key_press_handler.update( now );
+            if( pause_at_timestamp && !now.is_not_a_date_time() && *pause_at_timestamp < now )
+            {
+                playback.pause( now );
+                pause_at_timestamp = boost::none;
+            }
+            if( playback.is_paused() )
+            {
+                boost::this_thread::sleep( boost::posix_time::millisec( 200 ) );
+                continue;
+            }
             if( !multiplay->read() ) { break; }
             playback.has_read_once();
         }
