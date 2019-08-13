@@ -330,7 +330,9 @@ int main( int argc, char** argv )
         if( !to.empty() ) { totime = boost::posix_time::from_iso_string( to ); }
         multiplay.reset( new comma::Multiplay( sourceConfigs, speed, quiet, boost::posix_time::microseconds( static_cast<unsigned int>( resolution * 1000000 )), fromtime, totime, flush ));
         if( options.exists( "--paused,--paused-at-start" )) { playback.pause(); }
-        boost::optional< boost::posix_time::ptime > pause_at_timestamp = boost::make_optional( options.exists( "--pause-at" ), boost::posix_time::from_iso_string( options.value< std::string >( "--pause-at" )));
+        boost::optional< std::string > pause_at_option = options.optional< std::string >( "--pause-at" );
+        boost::optional< boost::posix_time::ptime > pause_at_timestamp;
+        if( pause_at_option ) { pause_at_timestamp = boost::posix_time::from_iso_string( *pause_at_option ); }
         key_press_handler_t key_press_handler(  options.exists( "--interactive,-i" )
                                              || options.exists( "--paused,--paused-at-start" )
                                              || options.exists( "--pause-at" ));
