@@ -331,7 +331,7 @@ int main( int argc, char** argv )
         multiplay.reset( new comma::Multiplay( sourceConfigs, speed, quiet, boost::posix_time::microseconds( static_cast<unsigned int>( resolution * 1000000 )), fromtime, totime, flush ));
         if( options.exists( "--paused,--paused-at-start" )) { playback.pause(); }
         boost::optional< std::string > pause_at_option = options.optional< std::string >( "--pause-at" );
-        boost::optional< boost::posix_time::ptime > pause_at_timestamp;
+        boost::optional< boost::posix_time::ptime > pause_at_timestamp = boost::make_optional< boost::posix_time::ptime >( false, boost::posix_time::not_a_date_time );
         if( pause_at_option ) { pause_at_timestamp = boost::posix_time::from_iso_string( *pause_at_option ); }
         key_press_handler_t key_press_handler(  options.exists( "--interactive,-i" )
                                              || options.exists( "--paused,--paused-at-start" )
