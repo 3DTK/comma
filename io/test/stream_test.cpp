@@ -31,6 +31,7 @@
 #include <fstream>
 #include <gtest/gtest.h>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/io_service.hpp>
 #include <boost/asio/local/stream_protocol.hpp>
 #include <boost/filesystem/operations.hpp>
 #include "../select.h"
