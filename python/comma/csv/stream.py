@@ -32,6 +32,7 @@ import sys
 import itertools
 import functools
 import warnings
+import tempfile
 from ..util import warning
 from ..io import readlines_unbuffered
 from ..numpy import merge_arrays, types_of_dtype, structured_dtype
@@ -91,8 +92,8 @@ class stream(object):
         self.default_values = self._default_values(default_values)
         self.missing_values = self._missing_values()
         self.data_extraction_fields = self._data_extraction_fields()
-        self.struct_and_extraction_fields = zip(self.struct.flat_dtype.names,
-                                                self.data_extraction_fields)
+        self.struct_and_extraction_fields = list(zip(self.struct.flat_dtype.names,
+                                                self.data_extraction_fields))
         #self.write_dtype = self._write_dtype()
         #self.unrolled_write_dtype = structured_dtype( ','.join( types_of_dtype( self.write_dtype, unroll=True ) ) )
         #print >>sys.stderr, "self.write_dtype.descr = %s" % str(self.write_dtype.descr)
@@ -159,7 +160,31 @@ class stream(object):
                 return np.fromstring(self.source.read(), dtype=self.input_dtype)
             else:
                 count = -1 if size < 0 else size
-                return np.fromfile(self.source, dtype=self.input_dtype, count=count)
+                # reading from stdin fails with
+                # OSError: obtaining file position failed
+                # see https://github.com/numpy/numpy/issues/7380
+                #fp = tempfile.SpooledTemporaryFile()
+                #if hasattr(self.source, "buffer"):
+                #    fp.write(self.source.buffer.read())
+                #    fp.seek(0)
+                #else:
+                #    fp.write(self.source.read())
+                #    fp.seek(0)
+                #res = np.fromfile(fp, dtype=self.input_dtype, count=count)
+                #print(res, count, self.input_dtype)
+                #fp.close()
+                #return res
+                if hasattr(self.source, "buffer"):
+                    if count == -1:
+                        data = self.source.buffer.read()
+                    else:
+                        data = self.source.buffer.read(count*self.input_dtype.itemsize)
+                else:
+                    if count == -1:
+                        data = self.source.read()
+                    else:
+                        data = self.source.read(count*self.input_dtype.itemsize)
+                return np.frombuffer(data, dtype=self.input_dtype)
         else:
             with warnings.catch_warnings():
                 warnings.simplefilter('ignore')
@@ -182,8 +207,8 @@ class stream(object):
             return
         missing = np.zeros(1, dtype=self.missing_dtype)
         if self.default_values:
-            dtype_name_of = dict(zip(self.missing_fields, self.missing_dtype.names))
-            for field, value in self.default_values.iteritems():
+            dtype_name_of = dict(list(zip(self.missing_fields, self.missing_dtype.names)))
+            for field, value in self.default_values.items():
                 name = dtype_name_of[field]
                 if self.missing_dtype[name] == csv_time.DTYPE:
                     try: missing[name] = csv_time.to_numpy(value)
@@ -217,13 +242,13 @@ class stream(object):
             #unrolled_array = s.view( self.unrolled_write_dtype )
             if self.tied: lines = self._tie_ascii(self.tied._ascii_buffer, unrolled_array)
             else: lines = (self._toline(scalars) for scalars in unrolled_array)
-            for line in lines: print >> self.target, line
+            for line in lines: print(line, file=self.target)
         self.target.flush()
 
     def _tie_binary(self, tied_array, array): return merge_arrays(tied_array, array)
 
     def _tie_ascii(self, tied_buffer, unrolled_array):
-        for tied_line, scalars in itertools.izip(tied_buffer, unrolled_array): yield self.delimiter.join([tied_line] + self._strings(scalars))
+        for tied_line, scalars in zip(tied_buffer, unrolled_array): yield self.delimiter.join([tied_line] + list(self._strings(scalars)))
 
     def _toline(self, scalars): return self.delimiter.join(self._strings(scalars))
 
@@ -238,7 +263,7 @@ class stream(object):
         if self.binary:
             self._input_array.tofile(self.target)
         else:
-            for line in self._ascii_buffer: print >> self.target, line
+            for line in self._ascii_buffer: print(line, file=self.target)
         self.target.flush()
 
     def _dump_with_mask(self, mask):
@@ -254,10 +279,14 @@ class stream(object):
             msg = "mask size {} not equal to data size {}".format(mask.size, data_size)
             raise ValueError(msg)
         if self.binary:
-            self._input_array[mask].tofile(self.target)
+            data = self._input_array[mask].tobytes()
+            if hasattr(self.target, "buffer"):
+                self.target.buffer.write(data)
+            else:
+                self.target.write(data)
         else:
-            for line, allowed in itertools.izip(self._ascii_buffer, mask):
-                if allowed: print >> self.target, line
+            for line, allowed in zip(self._ascii_buffer, mask):
+                if allowed: print(line, file=self.target)
         self.target.flush()
 
     def _warn(self, msg, verbose=True):
@@ -288,7 +317,7 @@ class stream(object):
         return tuple(xpath(name) or name for name in fields.split(','))
 
     def _format(self, binary, format):
-        if isinstance(binary, basestring):
+        if isinstance(binary, str):
             if self.verbose and binary and format and binary != format:
                 msg = "ignoring '{}' and using '{}' since binary keyword has priority" \
                     .format(format, binary)
@@ -347,7 +376,7 @@ class stream(object):
     def _default_buffer_size(self):
         if self.tied: return self.tied.size
         elif self.flush: return 1
-        return max( 1, stream.buffer_size_in_bytes / self.input_dtype.itemsize ) # todo? too arbitrary for ascii?
+        return max( 1, stream.buffer_size_in_bytes // self.input_dtype.itemsize ) # todo? too arbitrary for ascii?
 
     def _missing_fields(self):
         missing_fields = [field for field in self.struct.fields if field not in self.fields]
@@ -360,10 +389,10 @@ class stream(object):
     def _missing_dtype(self):
         if not self.missing_fields: return
         n = len(self.input_dtype.names)
-        missing_names = ['f{}'.format(n + i) for i in xrange(len(self.missing_fields))]
+        missing_names = ['f{}'.format(n + i) for i in range(len(self.missing_fields))]
         type_of = self.struct.type_of_field.get
         missing_types = [type_of(name) for name in self.missing_fields]
-        return np.dtype(zip(missing_names, missing_types))
+        return np.dtype(list(zip(missing_names, missing_types)))
 
     def _complete_dtype(self):
         if self.missing_dtype: return np.dtype(self.input_dtype.descr + self.missing_dtype.descr)
@@ -372,13 +401,13 @@ class stream(object):
     def _default_values(self, default_values):
         if not (self.missing_fields and default_values): return
         if self.full_xpath:
-            default_fields_ = default_values.keys()
+            default_fields_ = list(default_values.keys())
             default_values_ = default_values.copy()
         else:
-            leaves = default_values.keys()
+            leaves = list(default_values.keys())
             xpath_of = self.struct.xpath_of_leaf.get
             default_fields_ = tuple(xpath_of(leaf) or leaf for leaf in leaves)
-            default_values_ = dict(zip(default_fields_, default_values.values()))
+            default_values_ = dict(list(zip(default_fields_, list(default_values.values()))))
         default_fields_in_stream = set(default_fields_).intersection(self.fields)
         unknown_default_fields = set(default_fields_).difference(self.struct.fields)
         if default_fields_in_stream:

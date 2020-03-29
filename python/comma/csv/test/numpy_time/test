@@ -1,14 +1,14 @@
 #!/bin/bash
 
 function comma_time_roundabout {
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import numpy
 import comma
 
 comma_time = '$@'
 numpy_time = comma.csv.time.to_numpy( comma_time )
 if isinstance( numpy_time, numpy.datetime64 ):
-  print comma.csv.time.from_numpy( numpy_time )
+  print(comma.csv.time.from_numpy( numpy_time ))
 END
 )"
 }

@@ -16,7 +16,7 @@ class test_stream(unittest.TestCase):
         self.assertTrue(s.full_xpath)
 
     def test_override_defaults(self):
-        from cStringIO import StringIO
+        from io import StringIO
         source = StringIO("")
         target = StringIO("")
         t = comma.csv.stream(comma.csv.struct('id', 'S4'), delimiter=';')

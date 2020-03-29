@@ -1,7 +1,7 @@
 #!/bin/bash
 
 numpy_int=$(
-python -c "
+python3 -c "
 from comma.csv import *
 t = struct( 'f', *format.to_numpy('t') )
 s = stream( t, binary=True )

@@ -27,7 +27,7 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import absolute_import
+
 import numpy as np
 import re
 import os
@@ -65,7 +65,7 @@ def to_numpy(t):
     if t in ['', 'not-a-date-time']: return NOT_A_DATE_TIME
     if t in ['+infinity', '+inf', 'infinity', 'inf']: return POSITIVE_INFINITY
     if t in ['-infinity', '-inf']: return NEGATIVE_INFINITY
-    if not (isinstance(t, basestring) and re.match(r'^(\d{8}T\d{6}(\.\d{0,6})?)$', t)):
+    if not (isinstance(t, str) and re.match(r'^(\d{8}T\d{6}(\.\d{0,6})?)$', t)):
         msg = "expected comma time, got '{}'".format(repr(t))
         raise TypeError(msg)
     v = list(t)
@@ -100,7 +100,7 @@ def from_numpy(t):
     if is_undefined(t): return 'not-a-date-time'
     if is_negative_infinity(t): return '-infinity'
     if is_positive_infinity(t): return '+infinity'
-    return re.sub(r'(\.0{6})?([-+]\d{4}|Z)?$', '', str(t)).translate(None, ':-')
+    return re.sub(r'(\.0{6})?([-+]\d{4}|Z)?$', '', str(t)).translate(str.maketrans('', '', ':-'))
 
 def ascii_converters(types):
     converters = {}

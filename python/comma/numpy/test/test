@@ -3,5 +3,5 @@
 name=$( basename $0 )
 
 for t in test_*.py; do
-    python $t && echo "$name: $t succeeded" >&2 || { echo "$name: $t failed" >&2; exit 1; }
+    python3 $t && echo "$name: $t succeeded" >&2 || { echo "$name: $t failed" >&2; exit 1; }
 done

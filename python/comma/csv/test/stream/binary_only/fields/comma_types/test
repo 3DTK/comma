@@ -5,7 +5,7 @@ function output { csv-paste value="line[" line-number value="]\=" --delimiter '@
 
 function process_records
 {
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import comma
 import numpy
 

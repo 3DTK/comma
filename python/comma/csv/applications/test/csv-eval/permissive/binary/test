@@ -5,7 +5,7 @@ source $( which comma-application-util ) || { echo "$scriptname: failed to sourc
 
 function csv_eval()
 {
-    csv-eval "$@" --fields=x,y --binary=2d 'import sys; print >> sys.stderr, "Python builtins are present!"; a=x+y'
+    csv-eval "$@" --fields=x,y --binary=2d 'import sys; print("Python builtins are present!", file=sys.stderr); a=x+y'
 }
 
 function reformat_output()

@@ -5,7 +5,7 @@ source $( which comma-application-util ) || { echo "$scriptname: failed to sourc
 
 function process_records
 {
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import comma
 
 t = comma.csv.struct( 'x', 'u4' )

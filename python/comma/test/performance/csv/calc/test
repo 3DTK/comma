@@ -4,7 +4,7 @@ function generate_uniform_input
 {
     local size=$1
     local number_of_ids=100
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import numpy as np
 import comma
 t = comma.csv.struct('id,value', 'u4', 'f8')
@@ -23,7 +23,7 @@ END
 function generate_random_input
 {
     local size=$1
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import numpy as np
 import comma
 t = comma.csv.struct('id,value', 'u4', 'f8')

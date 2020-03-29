@@ -8,7 +8,7 @@ function process_records
 {
     local binary
     if [[ "$1" == "binary" ]]; then binary=True; else binary=False; fi
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import comma
 import numpy
 

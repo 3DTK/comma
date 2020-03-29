@@ -54,7 +54,7 @@ def readlines_unbuffered(size, source=sys.stdin, skip_blank_lines=True):
             number_of_lines += 1
         return lines
     if skip_blank_lines:
-        source_ = itertools.ifilter(lambda line: line.strip(), source)
+        source_ = [line for line in source if line.strip()]
     else:
         source_ = source
     return [line.rstrip('\n') for line in source_]

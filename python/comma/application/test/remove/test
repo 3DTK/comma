@@ -7,7 +7,7 @@ mkdir -p "$output_dir" || exit 1
 
 function main()
 {
-    python -c "
+    python3 -c "
 import comma.application
 import argparse
 

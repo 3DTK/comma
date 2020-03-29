@@ -5,7 +5,7 @@ function output { csv-paste value="line[" line-number value="]\=" --delimiter '@
 
 function default_values
 {
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import comma
 import numpy as np
 from datetime import datetime

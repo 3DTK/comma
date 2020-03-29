@@ -10,20 +10,20 @@ function main()
 {
     local value_type
     value_type=${input_value_type:+"value_type=$input_value_type, "}
-    python -c "
+    python3 -c "
 import comma.application
 import argparse
 
 parser = argparse.ArgumentParser( )
 parser.add_argument( '--dict', metavar='DICT', help='populate a dictionary of given type', type=str, action=comma.application.set_dictionary_action, $value_type delimiter=';', default={} )
 args = parser.parse_args()
-for k, v in args.dict.iteritems():
+for k, v in args.dict.items():
     def quote_if_string( v ):
         if type( v ) == str:
             return '\"%s\"' % v
         else:
             return v
-    print '%s=%s' % ( k, quote_if_string( v ) )
+    print('%s=%s' % ( k, quote_if_string( v ) ))
 " $input_args
 }
 

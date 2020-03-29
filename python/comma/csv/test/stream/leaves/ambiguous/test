@@ -2,7 +2,7 @@
 
 function ambiguous_fields
 {
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import comma
 import numpy
 

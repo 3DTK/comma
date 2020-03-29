@@ -1,14 +1,14 @@
 #!/bin/bash
 
-function types_incorrect_name { python -c "import comma; point_t = comma.csv.struct( 'x', 'invalid' )"; }
-function types_empty_name { python -c "import comma; point_t = comma.csv.struct( 'x', '' )"; }
-function types_insufficient_number { python -c "import comma; point_t = comma.csv.struct( 'x,y', 'float64' )"; }
-function duplicate_field { python -c "import comma; point_t = comma.csv.struct( 'x,x,z', 'float64', 'int32', 'float64' )"; }
-function field_with_slash { python -c "import comma; point_t = comma.csv.struct( 'x,x/y,z', 'float64', 'int32', 'float64' )"; }
+function types_incorrect_name { python3 -c "import comma; point_t = comma.csv.struct( 'x', 'invalid' )"; }
+function types_empty_name { python3 -c "import comma; point_t = comma.csv.struct( 'x', '' )"; }
+function types_insufficient_number { python3 -c "import comma; point_t = comma.csv.struct( 'x,y', 'float64' )"; }
+function duplicate_field { python3 -c "import comma; point_t = comma.csv.struct( 'x,x,z', 'float64', 'int32', 'float64' )"; }
+function field_with_slash { python3 -c "import comma; point_t = comma.csv.struct( 'x,x/y,z', 'float64', 'int32', 'float64' )"; }
 
 function excess_number_of_types
 {
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import comma
 import numpy
 point_t = comma.csv.struct( 'x,y', 'float64','float64','uint64' )
@@ -23,7 +23,7 @@ END
 
 function blank_fields
 {
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import comma
 import numpy
 point_t = comma.csv.struct( ',,z', 'float64', 'int32', 'float64' )
@@ -36,7 +36,7 @@ END
 
 function basic
 {
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import numpy
 import comma
 
@@ -51,30 +51,30 @@ END
 
 function shorthand
 {
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import comma
 
 point_t = comma.csv.struct( 'x,y,z', 'float64', 'float64', 'float64' )
 timestamped_point_t = comma.csv.struct( 't,coordinates', 'datetime64[us]', point_t )
 record_t = comma.csv.struct( 'observer,event', 'S3', timestamped_point_t )
 for i,name in enumerate( [ 'event', 'event/coordinates' ] ):
-  print "shorthand[{}]/name={}".format( i, name )
-  print "shorthand[{}]/value={}".format( i, ','.join( record_t.shorthand[name] ) )
+  print("shorthand[{}]/name={}".format( i, name ))
+  print("shorthand[{}]/value={}".format( i, ','.join( record_t.shorthand[name] ) ))
 END
 )"
 }
 
 function leaves
 {
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import comma
 
 point_t = comma.csv.struct( 'x,y,z', 'float64', 'float64', 'float64' )
 timestamped_point_t = comma.csv.struct( 't,coordinates', 'datetime64[us]', point_t )
 observer_t = comma.csv.struct( 'name,id', 'S3', 'uint32' )
 record_t = comma.csv.struct( 'observer,event,value', observer_t, timestamped_point_t, 'float64' )
-for leaf,xpath in record_t.xpath_of_leaf.iteritems():
-  print "leaves/{}={}".format( leaf, record_t.xpath_of_leaf.get( leaf ) )
+for leaf,xpath in record_t.xpath_of_leaf.items():
+  print("leaves/{}={}".format( leaf, record_t.xpath_of_leaf.get( leaf ) ))
 END
 )"
 }
@@ -82,13 +82,13 @@ END
 function record
 {
     local what=$1
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import comma
 
 point_t = comma.csv.struct( 'x,y,z', 'float64', 'float64', 'float64' )
 timestamped_point_t = comma.csv.struct( 't,coordinates', 'datetime64[us]', point_t )
 record_t = comma.csv.struct( 'observer,event', 'S3', timestamped_point_t )
-print ','.join( record_t.$what )
+print(','.join( record_t.$what ))
 END
 )"
 }
@@ -96,7 +96,7 @@ END
 function assign()
 {
     local what=$1
-    python -c "
+    python3 -c "
 import sys
 import numpy as np
 import time
@@ -131,23 +131,23 @@ t['e']['a'] = 40
 c = test_class()
 assign = test_struct.assign( c )
 assign( t[0] )
-print 'assign/basic/output/a=' + str( c.a )
-print 'assign/basic/output/b=' + str( c.b )
-print 'assign/basic/output/c=\"' + str( c.c ).split( '+' )[0] + '\"'
-print 'assign/basic/output/d=\"' + str( c.d ) + '\"'
-print 'assign/basic/output/e/a=' + str( c.e.a )
-#print 'assign/basic/output/f[0]=' + str( c.f[0] )
-#print 'assign/basic/output/f[1]=' + str( c.f[1] )
-#print 'assign/basic/output/g[0]/a=' + str( c.g[0].a )
-#print 'assign/basic/output/g[1]/a=' + str( c.g[1].a )
+print( 'assign/basic/output/a=' + str( c.a ))
+print( 'assign/basic/output/b=' + str( c.b ))
+print( 'assign/basic/output/c=\"' + str( c.c ).split( '+' )[0] + '\"')
+print( 'assign/basic/output/d=\"' + str( c.d ) + '\"')
+print( 'assign/basic/output/e/a=' + str( c.e.a ))
+#print( 'assign/basic/output/f[0]=' + str( c.f[0] ))
+#print( 'assign/basic/output/f[1]=' + str( c.f[1] ))
+#print( 'assign/basic/output/g[0]/a=' + str( c.g[0].a ))
+#print( 'assign/basic/output/g[1]/a=' + str( c.g[1].a ))
 def convert( v ): return 'customized time: ' + str( v ).split( '+' )[0] if type( v ) == np.datetime64 else v
 assign = test_struct.assign( c, convert )
 assign( t[0] )
-print 'assign/convert/output/a=' + str( c.a )
-print 'assign/convert/output/b=' + str( c.b )
-print 'assign/convert/output/c=\"' + str( c.c ) + '\"'
-print 'assign/convert/output/d=\"' + str( c.d ) + '\"'
-print 'assign/convert/output/e/a=' + str( c.e.a )
+print( 'assign/convert/output/a=' + str( c.a ))
+print( 'assign/convert/output/b=' + str( c.b ))
+print( 'assign/convert/output/c=\"' + str( c.c ) + '\"')
+print( 'assign/convert/output/d=\"' + str( c.d ) + '\"')
+print( 'assign/convert/output/e/a=' + str( c.e.a ))
 "
 }
 

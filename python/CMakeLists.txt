@@ -9,7 +9,7 @@ MACRO( disable_python_testing )
 ENDMACRO( disable_python_testing )
 
 MACRO( check_python_module module )
-    EXECUTE_PROCESS( COMMAND ${PYTHON} -c "import ${module}; print( ${module}.__version__ );"
+    EXECUTE_PROCESS( COMMAND ${Python3_EXECUTABLE} -c "import ${module}; print( ${module}.__version__ );"
         RESULT_VARIABLE MODULE_EXIT_CODE
         OUTPUT_VARIABLE MODULE_VERSION_STRING
         ERROR_VARIABLE MODULE_ERROR
@@ -25,7 +25,7 @@ MACRO( check_python_module module )
 ENDMACRO( check_python_module )
 
 MACRO( set_python_build_lib_directory )
-    EXECUTE_PROCESS( COMMAND ${PYTHON} -c "from distutils.dist import Distribution as D; from distutils.command.build import build as B; b = B(D()); b.finalize_options(); print( b.build_lib.split('/',1)[-1] );"
+    EXECUTE_PROCESS( COMMAND ${Python3_EXECUTABLE} -c "from distutils.dist import Distribution as D; from distutils.command.build import build as B; b = B(D()); b.finalize_options(); print( b.build_lib.split('/',1)[-1] );"
         RESULT_VARIABLE MODULE_EXIT_CODE
         OUTPUT_VARIABLE PYTHON_BUILD_LIB_DIR
         ERROR_VARIABLE MODULE_ERROR
@@ -46,14 +46,14 @@ IF( NOT BUILD_PYTHON_PACKAGES )
     RETURN()
 ENDIF( NOT BUILD_PYTHON_PACKAGES )
 
-FIND_PROGRAM( PYTHON "python" )
+find_package (Python3 COMPONENTS Interpreter REQUIRED)
 
-IF( NOT PYTHON )
+IF( NOT Python3_FOUND )
     MESSAGE( WARNING "python not found" )
     MESSAGE( STATUS "comma/python modules and scripts will not be installed" )
     disable_python_testing()
     RETURN()
-ENDIF( NOT PYTHON )
+ENDIF( NOT Python3_FOUND )
 
 check_python_module( numpy )
 enable_python_testing()
@@ -79,11 +79,11 @@ set_python_build_lib_directory()
 ADD_SUBDIRECTORY( comma )
 
 ADD_CUSTOM_TARGET( python_build ALL
-                ${PYTHON} ${SETUP_PY} build --build-base ${BUILD_BASE}
+                ${Python3_EXECUTABLE} ${SETUP_PY} build --build-base ${BUILD_BASE}
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 
 INSTALL( CODE "EXECUTE_PROCESS(
-                    COMMAND ${PYTHON} ${SETUP_PY} build --build-base ${BUILD_BASE} install ${INSTALL_PREFIX_OPTION} --force
+                    COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} build --build-base ${BUILD_BASE} install ${INSTALL_PREFIX_OPTION} --force
                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )" )
 
 SET_DIRECTORY_PROPERTIES( PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES build )

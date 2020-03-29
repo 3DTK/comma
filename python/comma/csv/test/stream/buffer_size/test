@@ -1,16 +1,16 @@
 #!/bin/bash
 
-function get_buffer_size_in_bytes { python -c "import comma; print comma.csv.stream.buffer_size_in_bytes"; }
+function get_buffer_size_in_bytes { python3 -c "import comma; print(comma.csv.stream.buffer_size_in_bytes)"; }
 
 function get_default_size
 {
     local fields=$1
     local type=$2
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import comma
 fields='$fields'
 types = ('$type',) * len( fields.split(',') )
-print comma.csv.stream( comma.csv.struct( fields, *types ) ).size
+print(comma.csv.stream( comma.csv.struct( fields, *types ) ).size)
 END
 )"
 }
@@ -18,6 +18,6 @@ END
 echo "buffer_size_in_bytes=$( get_buffer_size_in_bytes )"
 
 fields="x,y"
-echo "number_of_fields=$( python -c "s = '$fields'; print len( s.split(',') )" )"
+echo "number_of_fields=$( python3 -c "s = '$fields'; print(len( s.split(',') ))" )"
 echo "size/uint8=$( get_default_size $fields uint8 )"
 echo "size/float64=$( get_default_size $fields float64 )"

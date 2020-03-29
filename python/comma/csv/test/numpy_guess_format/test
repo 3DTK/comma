@@ -2,12 +2,12 @@
 
 function comma_guess_format
 {
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import comma
 import numpy
 
 guessed_format = comma.csv.format.guess_format( ['$1'] )
-print guessed_format
+print(guessed_format)
 END
 )"
 }

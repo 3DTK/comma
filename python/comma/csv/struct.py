@@ -40,16 +40,16 @@ class struct(object):
         self.concise_types = concise_types
         self.concise_fields = self._fill_blanks(concise_fields)
         self._check_fields_conciseness()
-        self.dtype = np.dtype(zip(self.concise_fields, self.concise_types))
+        self.dtype = np.dtype(list(zip(self.concise_fields, self.concise_types)))
         self.fields = self._full_xpath_fields()
         self.nondefault_fields = self._nondefault_fields()
         self.types = self._basic_types()
         self.shorthand = self._shorthand()
         self.format = ','.join(self.types)
-        self.flat_dtype = np.dtype(zip(self.fields, self.types))
+        self.flat_dtype = np.dtype(list(zip(self.fields, self.types)))
         unrolled_types = types_of_dtype(self.flat_dtype, unroll=True)
         self.unrolled_flat_dtype = structured_dtype(','.join(unrolled_types))
-        self.type_of_field = dict(zip(self.fields, self.types))
+        self.type_of_field = dict(list(zip(self.fields, self.types)))
         leaves = tuple(xpath.split('/')[-1] for xpath in self.fields)
         self.ambiguous_leaves = set(leaf for leaf in leaves if leaves.count(leaf) > 1)
         self.xpath_of_leaf = self._xpath_of_leaf(leaves)
@@ -87,10 +87,10 @@ class struct(object):
         >>> outer.expand_shorthand('in')
         ('in/i', 'in/j')
         """
-        if isinstance(compressed_fields, basestring):
+        if isinstance(compressed_fields, str):
             compressed_fields = compressed_fields.split(',')
         expand = self.shorthand.get
-        field_tuples = map(lambda name: expand(name) or (name,), compressed_fields)
+        field_tuples = [expand(name) or (name,) for name in compressed_fields]
         return sum(field_tuples, ())
     
     def assign( self, data, convert = None ):
@@ -107,7 +107,7 @@ class struct(object):
 
     def _assign( self, data, fields_map, convert ):
         functors = {}
-        for k, v in fields_map.iteritems():
+        for k, v in list(fields_map.items()):
             if len( v ) > 0:
                 functors[k] = self._assign( getattr( data, k ), v, convert )
             else:
@@ -115,15 +115,15 @@ class struct(object):
                     setattr( data, key, value if convert is None else convert( value ) )
                 functors[k] = functor
         def apply_functors( record ):
-            for k, f in functors.iteritems(): f( record[k] )
+            for k, f in list(functors.items()): f( record[k] )
         return apply_functors
     
     def _nondefault_fields(self):
         default_name = struct.default_field_name
-        return tuple(map(lambda f: '' if f.startswith(default_name) else f, self.fields))
+        return tuple(['' if f.startswith(default_name) else f for f in self.fields])
 
     def _fill_blanks(self, fields):
-        if isinstance(fields, basestring):
+        if isinstance(fields, str):
             fields = fields.split(',')
         ntypes = len(self.concise_types)
         if len(fields) > ntypes:
@@ -172,13 +172,13 @@ class struct(object):
                 continue
             fields_of_type = [name + '/' + field for field in type.fields]
             shorthand[name] = tuple(fields_of_type)
-            for subname, subfields in type.shorthand.iteritems():
+            for subname, subfields in list(type.shorthand.items()):
                 xpath = name + '/' + subname
                 shorthand[xpath] = tuple(name + '/' + field for field in subfields)
         return shorthand
 
     def _xpath_of_leaf(self, leaves):
-        xpath_of_leaf = dict(zip(leaves, self.fields))
+        xpath_of_leaf = dict(list(zip(leaves, self.fields)))
         for ambiguous_leaf in self.ambiguous_leaves:
             del xpath_of_leaf[ambiguous_leaf]
         return xpath_of_leaf

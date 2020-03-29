@@ -5,7 +5,7 @@ function output { csv-paste value="line[" line-number value="]\=" --delimiter '@
 
 function unknown_fields
 {
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import comma
 
 point_t = comma.csv.struct( 'x,y,z', 'float64', 'float64', 'float64' )

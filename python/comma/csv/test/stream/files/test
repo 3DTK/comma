@@ -9,7 +9,7 @@ function process_records
     local input_format=$1
     local in=$2
     local out=$3
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import comma
 import numpy
 

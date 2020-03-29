@@ -7,7 +7,7 @@ function output { local prefix=$1; gawk '{ print "'${prefix:+$prefix/}'output/li
 function process_records
 {
     local input_format=$1
-    python -c "$( cat <<END
+    python3 -c "$( cat <<END
 import comma
 
 point_t = comma.csv.struct( 'x,y,mask', 'float64', 'float64', 'uint32' )
